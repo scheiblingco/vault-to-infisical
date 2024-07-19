@@ -1,0 +1,16 @@
+{
+  "infisical": {
+    "url": "https://app.infisical.com",
+    "projectId": "",
+    "clientId": "",
+    "clientSecret": "",
+    "environment": "prod"
+  },
+  "vault": {
+    "addr": "",
+    "auth_method": "token",
+    "token": "",
+    "storeName": "kv2",
+    "ignoreTls": false
+  }
+}
