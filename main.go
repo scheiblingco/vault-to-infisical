@@ -3,12 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/infisical/go-sdk/packages/errors"
-	"github.com/joho/godotenv"
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
+
+	"github.com/infisical/go-sdk/packages/errors"
+	"github.com/joho/godotenv"
 )
 
 func CopyRecursive(path string, vac VaultConnection, ifc InfisicalConnection) error {
@@ -39,7 +39,7 @@ func CopyRecursive(path string, vac VaultConnection, ifc InfisicalConnection) er
 		if err != nil {
 			if ex, ok := err.(*errors.APIError); ok {
 				if strings.Contains(*ex.ErrorMessage, "Rate limit") {
-					time.Sleep(60 * time.Second)
+					// time.Sleep(60 * time.Second)
 					err = ifc.IngestSecret("/"+fmtpath, item, secret)
 					if err != nil {
 						return err
@@ -51,7 +51,7 @@ func CopyRecursive(path string, vac VaultConnection, ifc InfisicalConnection) er
 		}
 
 		// Insert a sleep here, because by default Infisical has a rate limit of 3ps/60pm
-		time.Sleep(1 * time.Second)
+		// time.Sleep(1 * time.Second)
 	}
 
 	return nil

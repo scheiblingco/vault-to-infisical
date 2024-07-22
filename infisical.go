@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
-	infisical "github.com/infisical/go-sdk"
 	"strings"
+	"time"
+
+	infisical "github.com/infisical/go-sdk"
 )
 
 type InfisicalConnection struct {
@@ -84,20 +86,34 @@ func (ic *InfisicalConnection) EnsureFolderExists(path string) error {
 }
 
 func (ic *InfisicalConnection) IngestSecret(path, item string, data []byte) error {
-	_, err := ic.client.Secrets().Retrieve(infisical.RetrieveSecretOptions{
+	ex, errX := ic.client.Secrets().Retrieve(infisical.RetrieveSecretOptions{
 		SecretKey:   item,
 		ProjectID:   ic.Config.ProjectId,
 		Environment: ic.Config.Environment,
 		SecretPath:  path,
 	})
 
-	if err == nil {
+	if errX != nil {
+		if strings.Contains(errX.Error(), "Rate limit") {
+			time.Sleep(60 * time.Second)
+			ex, errX = ic.client.Secrets().Retrieve(infisical.RetrieveSecretOptions{
+				SecretKey:   item,
+				ProjectID:   ic.Config.ProjectId,
+				Environment: ic.Config.Environment,
+				SecretPath:  path,
+			})
+		}
+	}
+
+	fmt.Println(ex.SecretKey)
+
+	if errX == nil {
 		if !ic.Settings.Overwrite {
 			fmt.Sprintf("secret %s at path %s already exists", item, path)
 			return nil
 		}
 
-		_, err = ic.client.Secrets().Update(infisical.UpdateSecretOptions{
+		_, errY := ic.client.Secrets().Update(infisical.UpdateSecretOptions{
 			SecretKey:                item,
 			ProjectID:                ic.Config.ProjectId,
 			Environment:              ic.Config.Environment,
@@ -106,9 +122,10 @@ func (ic *InfisicalConnection) IngestSecret(path, item string, data []byte) erro
 			NewSkipMultilineEncoding: false,
 		})
 
+		return errY
 	}
 
-	err = ic.EnsureFolderExists(path)
+	err := ic.EnsureFolderExists(path)
 	if err != nil {
 		return err
 	}
